@@ -114,10 +114,12 @@ def train():
     print("Preparing data...")
     faces, labels = prepare_training_data("training-data")
     print("Data prepared")
-
+    
     #print total faces and labels
     print("Total faces: ", len(faces))
+    print("exemple d'une face", faces[0])
     print("Total labels: ", len(labels))
+    print("exemple d'un label", labels[0])
 
     #create our LBPH face recognizer 
     #face_recognizer = cv2.face.createLBPHFaceRecognizer()
@@ -135,6 +137,9 @@ def predict(test_img, face_recognizer):
     img = test_img.copy()
     #detect face from the image
     face, rect = detect_face(img)
+    print("type face - rect", type(face),type(rect))
+    print("face", face)
+    print("rect", rect)
 
     #predict the image using our face recognizer 
     label = face_recognizer.predict(face)
@@ -155,7 +160,7 @@ def prediction_alan(face_recognizer):
     print("Predicting images...")
 
     #load test images
-    test_img1 = cv2.imread("test-data/test1.png")
+    test_img1 = cv2.imread("test-data/Alan.png")
     #cv2.imshow("image1", test_img1)
 
 
@@ -176,13 +181,35 @@ def train_reconnaissance():
 def prediction_perso(img_path, face_recognizer):
     print("Prediction personne dans script_prediction")
     img = cv2.imread(img_path)
-    prediction = predict(img, face_recognizer)
+    try : 
+        prediction = predict(img, face_recognizer)
+    except: 
+       prediction =  "unknown"
     return prediction 
 
 
+def prediction_personne(name, face_recognizer):
+    print("Predicting images...")
+
+    #load test images
+    path_img = "test-data/" + name +".png"
+    test_img1 = cv2.imread(path_img)
+    #cv2.imshow("image1", test_img1)
+
+
+    #perform a prediction
+    predicted_img1 = predict(test_img1, face_recognizer)
+    print("Prediction complete")
+    #display both images
+    cv2.imshow("Prediction", predicted_img1)
+    #cv2.imshow(subjects[2], predicted_img2)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+    
+    
 def main():
     print("Main")
     face_recognizer = train()
-    prediction_alan(face_recognizer)
+    prediction_personne('Alan', face_recognizer)
 
 #main()
