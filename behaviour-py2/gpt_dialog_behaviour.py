@@ -41,7 +41,7 @@ class GPTDialogBehaviour:
                     time.sleep(1)
                 else:
                     with open(self.dialog_data_path + "/reponse.txt") as f:
-                        text = f.readline().strip()
+                        text = f.read().strip()
                         self.tts.say(text)
                         os.remove(self.dialog_data_path + "/reponse.txt")
 
