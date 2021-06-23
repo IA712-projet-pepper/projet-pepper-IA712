@@ -11,11 +11,12 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 
 # Initiate microphone and recognizer
-mic = sr.Microphone()
+mic = sr.Microphone(2)
 r = sr.Recognizer()
 print("Models loaded.")
 
-path = "C:/Users/joach/Downloads/Pepper/"
+response_path = "../data/gpt_dialog"
+response_file_path = response_path + "/reponse.txt"
 chat_history_ids = torch.tensor([])
 wiki_search = False
 
@@ -26,26 +27,23 @@ with mic as source:
     
 # Loop for dialogue
 while True:
-    
     # If no response is waiting
-    if len(os.listdir(path)) == 0:
-        
+    if len(os.listdir(response_path)) == 0:
         # Get the audio
         print("- DialoGPT: Say something!")
         with mic as source:
             audio = r.listen(source, phrase_time_limit = 10, timeout = 10)
             print('.')
-        
-        
-        try: # If speech recognizion works 
+
+        try:  # If speech recognizion works
             print('.')
             text = r.recognize_google(audio, language = 'en-US')
-        except: # If speech recognizion doens't work
+        except:  # If speech recognizion doens't work
             print("- DialoGPT: I did not understand...")
             response = "I did not understand. Can you repeat?"
             
             # Export the result 
-            with open('response.txt', mode ='w', encoding="utf-8") as file:
+            with open(response_file_path, mode ='w', encoding="utf-8") as file:
                 file.write(response)
 
             time.sleep(0.3)
@@ -53,13 +51,13 @@ while True:
         
         print("- User: {}".format(text))
         
-        if (("ok" in [word.lower() for word in text.split()]) & (len(text.split()) <= 3)): # Reset context
+        if ("ok" in [word.lower() for word in text.split()]) and (len(text.split()) <= 3):  # Reset context
             chat_history_ids = torch.tensor([])
             bot_input_ids = torch.tensor([])
             print("- DialoGPT: .")
             continue
         
-        elif wiki_search: # Answer from wikipedia
+        elif wiki_search:  # Answer from wikipedia
             wiki_search = False
             search = wikipedia.search(text, results=1)
             if len(search) == 0:
@@ -76,13 +74,11 @@ while True:
             bot_input_ids = torch.cat([chat_history_ids, new_user_input_ids], dim=-1) if chat_history_ids.shape[0] > 0 else new_user_input_ids
             chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
             response = tokenizer.decode(chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
-            
-        
+
         print("- DialoGPT: {}".format(response))
         # Export the result 
-        with open(path + 'response.txt', mode ='w', encoding="utf-8") as file:
+        with open(response_file_path, mode ='w', encoding="utf-8") as file:
             file.write(response)
-    
     else:
         # Wait a little bit
         time.sleep(0.3)
